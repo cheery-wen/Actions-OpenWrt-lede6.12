@@ -5,4 +5,4 @@
 
 # 致谢
 - [Lean](https://github.com/coolsnowwolf/lede)
-- 
+- 所有为 OpenWrt 无私奉献的大佬们
