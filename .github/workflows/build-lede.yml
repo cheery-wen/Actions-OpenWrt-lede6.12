@@ -38,9 +38,9 @@ jobs:
             /opt/google /var/lib/gems /opt/pipx /opt/amazon
           df -h
 
-      # 2. 检出本仓库（存放 .config、diy.sh 等）
+      # 2. 检出本仓库（存放 .config、diy.sh 等）- 升级到 v5
       - name: 检出仓库代码
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       # 3. 设置时区与日期变量
       - name: 设置当前的日期
@@ -81,9 +81,9 @@ jobs:
           ./scripts/feeds update -a
           ./scripts/feeds install -a
 
-      # 8. 缓存 dl、staging_dir、build_dir（使用分支+运行ID，避免 hashFiles 错误）
+      # 8. 缓存 dl、staging_dir、build_dir - 升级到 v5
       - name: 缓存 dl、staging_dir、build_dir
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             openwrt/dl
@@ -124,10 +124,10 @@ jobs:
         if: (!cancelled())
         run: df -hT
 
-      # 13. 上传 bin 目录（按需）
+      # 13. 上传 bin 目录（按需）- 升级到 v6
       - name: 上传 bin 目录
         if: steps.compile.outcome == 'success' && env.UPLOAD_BIN_DIR == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: bin_${{ env.OPENWRT_NAME }}_${{ env.DEVICE_NAME }}_${{ env.date1 }}
           path: openwrt/bin
@@ -153,10 +153,10 @@ jobs:
           echo "FIRMWARE=$PWD" >> $GITHUB_ENV
           echo "status=success" >> $GITHUB_OUTPUT
 
-      # 15. 上传固件到 Artifact
+      # 15. 上传固件到 Artifact - 升级到 v6
       - name: 上传固件到 Artifact
         if: steps.organize.outcome == 'success' && env.UPLOAD_FIRMWARE == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: firmware_${{ env.OPENWRT_NAME }}_${{ env.DEVICE_NAME }}_${{ env.date1 }}
           path: ${{ env.FIRMWARE }}
@@ -172,10 +172,10 @@ jobs:
           EOF
           echo "status=success" >> $GITHUB_OUTPUT
 
-      # 17. 创建正式 Release 并上传固件
+      # 17. 创建正式 Release 并上传固件 - 升级到 v3
       - name: 创建正式 Release 并上传固件
         if: steps.release.outcome == 'success'
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
