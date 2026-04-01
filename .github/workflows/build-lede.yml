@@ -17,6 +17,7 @@ env:
   UPLOAD_RELEASE: true
   UPLOAD_BIN_DIR: false
   UPLOAD_FIRMWARE: true
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   build:
@@ -38,7 +39,7 @@ jobs:
             /opt/google /var/lib/gems /opt/pipx /opt/amazon
           df -h
 
-      # 2. 检出本仓库（存放 .config、diy.sh 等）- 升级到 v5
+      # 2. 检出本仓库（存放 .config、diy.sh 等）
       - name: 检出仓库代码
         uses: actions/checkout@v5
 
@@ -81,7 +82,7 @@ jobs:
           ./scripts/feeds update -a
           ./scripts/feeds install -a
 
-      # 8. 缓存 dl、staging_dir、build_dir - 升级到 v5
+      # 8. 缓存 dl、staging_dir、build_dir
       - name: 缓存 dl、staging_dir、build_dir
         uses: actions/cache@v5
         with:
@@ -124,7 +125,7 @@ jobs:
         if: (!cancelled())
         run: df -hT
 
-      # 13. 上传 bin 目录（按需）- 升级到 v6
+      # 13. 上传 bin 目录（按需）
       - name: 上传 bin 目录
         if: steps.compile.outcome == 'success' && env.UPLOAD_BIN_DIR == 'true'
         uses: actions/upload-artifact@v6
@@ -153,7 +154,7 @@ jobs:
           echo "FIRMWARE=$PWD" >> $GITHUB_ENV
           echo "status=success" >> $GITHUB_OUTPUT
 
-      # 15. 上传固件到 Artifact - 升级到 v6
+      # 15. 上传固件到 Artifact
       - name: 上传固件到 Artifact
         if: steps.organize.outcome == 'success' && env.UPLOAD_FIRMWARE == 'true'
         uses: actions/upload-artifact@v6
@@ -172,10 +173,10 @@ jobs:
           EOF
           echo "status=success" >> $GITHUB_OUTPUT
 
-      # 17. 创建正式 Release 并上传固件 - 升级到 v3
+      # 17. 创建正式 Release 并上传固件（使用 v2，通过环境变量强制 Node 24）
       - name: 创建正式 Release 并上传固件
         if: steps.release.outcome == 'success'
-        uses: softprops/action-gh-release@v3
+        uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
