@@ -10,8 +10,9 @@ env:
   REPO_URL: https://github.com/coolsnowwolf/lede
   REPO_BRANCH: master
   CONFIG_FILE: .config
-  DIY_SH: diy.sh
   FEEDS_CONF: feeds.conf.default
+  DIY1_SH: diy1.sh          # 首次自定义脚本（修改 feeds 源）
+  DIY2_SH: diy2.sh          # 再次加载配置时的自定义脚本（修改 .config）
   TZ: Asia/Shanghai
   OPENWRT_NAME: "lede"
   UPLOAD_RELEASE: true
@@ -39,7 +40,7 @@ jobs:
             /opt/google /var/lib/gems /opt/pipx /opt/amazon
           df -h
 
-      # 2. 检出本仓库（存放 .config、diy.sh 等）
+      # 2. 检出本仓库（存放 .config、diy1.sh、diy2.sh 等）
       - name: 检出仓库代码
         uses: actions/checkout@v5
 
@@ -68,12 +69,12 @@ jobs:
       - name: 克隆 OpenWrt 源码
         run: git clone --depth 1 $REPO_URL -b $REPO_BRANCH openwrt
 
-      # 6. 首次自定义：替换 feeds 配置并执行 diy.sh（用于修改 feeds 源）
-      - name: 首次自定义配置（处理 feeds.conf.default 并执行 diy.sh）
+      # 6. 首次自定义配置：替换 feeds.conf.default 并执行 diy1.sh（用于修改 feeds 源）
+      - name: 首次自定义配置（处理 feeds.conf.default 并执行 diy1.sh）
         run: |
           cd openwrt
           [ -f "../$FEEDS_CONF" ] && cp "../$FEEDS_CONF" ./
-          [ -f "../$DIY_SH" ] && chmod +x "../$DIY_SH" && "../$DIY_SH"
+          [ -f "../$DIY1_SH" ] && chmod +x "../$DIY1_SH" && "../$DIY1_SH"
 
       # 7. 更新 feeds
       - name: 更新 feeds
@@ -93,12 +94,12 @@ jobs:
           key: openwrt-${{ github.ref }}-${{ github.run_id }}
           restore-keys: openwrt-${{ github.ref }}-
 
-      # 9. 再次加载自定义配置：复制 .config、再次执行 diy.sh、生成默认配置
-      - name: 再次加载自定义配置
+      # 9. 再次加载自定义配置：复制 .config、执行 diy2.sh、生成默认配置
+      - name: 再次加载自定义配置（复制 .config，执行 diy2.sh，make defconfig）
         run: |
           [ -e "$CONFIG_FILE" ] && cp "$CONFIG_FILE" openwrt/.config
           cd openwrt
-          [ -f "../$DIY_SH" ] && chmod +x "../$DIY_SH" && "../$DIY_SH"
+          [ -f "../$DIY2_SH" ] && chmod +x "../$DIY2_SH" && "../$DIY2_SH"
           make defconfig
 
       # 10. 下载源码包（并行下载，失败后重试）
@@ -173,7 +174,7 @@ jobs:
           EOF
           echo "status=success" >> $GITHUB_OUTPUT
 
-      # 17. 创建正式 Release 并上传固件（使用 v2，通过环境变量强制 Node 24）
+      # 17. 创建正式 Release 并上传固件
       - name: 创建正式 Release 并上传固件
         if: steps.release.outcome == 'success'
         uses: softprops/action-gh-release@v2
